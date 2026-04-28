@@ -322,18 +322,18 @@ function emitNode(program: Program, services: ServiceInfo[], outputDir: string):
       const reqType = rpc.inputType?.name || "Record<string, never>";
       const resType = rpc.outputType?.name || "unknown";
       if (rpc.isStream) {
-        server.push(`  ${rpc.name}: (req: ${reqType}, send: (msg: ${resType}) => void) => Promise<void> | void;`);
+        server.push(`  ${rpc.name}: (ctx: import("@speconn/node").SpeconnContext, req: ${reqType}, send: (msg: ${resType}) => void) => Promise<void> | void;`);
       } else {
-        server.push(`  ${rpc.name}: (req: ${reqType}) => Promise<${resType}> | ${resType};`);
+        server.push(`  ${rpc.name}: (ctx: import("@speconn/node").SpeconnContext, req: ${reqType}) => Promise<${resType}> | ${resType};`);
       }
     }
     server.push(`}): RouteDefinition[] {`);
     server.push(`  return [`);
     for (const rpc of svc.rpcs) {
       if (rpc.isStream) {
-        server.push(`    { type: "server-stream", path: ${svc.serviceName}.methods.${rpc.name}.path, handler: (req, send) => handlers.${rpc.name}(req as any, send as any) },`);
+        server.push(`    { type: "server-stream", path: ${svc.serviceName}.methods.${rpc.name}.path, handler: (ctx, req, send) => handlers.${rpc.name}(ctx, req as any, send as any) },`);
       } else {
-        server.push(`    { type: "unary", path: ${svc.serviceName}.methods.${rpc.name}.path, handler: (req) => handlers.${rpc.name}(req as any) as any },`);
+        server.push(`    { type: "unary", path: ${svc.serviceName}.methods.${rpc.name}.path, handler: (ctx, req) => handlers.${rpc.name}(ctx, req as any) as any },`);
       }
     }
     server.push(`  ];`);
